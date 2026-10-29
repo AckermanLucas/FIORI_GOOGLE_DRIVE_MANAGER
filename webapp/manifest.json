@@ -1,0 +1,98 @@
+{
+  "_version": "1.90.0",
+  "sap.app": {
+    "id": "com.saperp.fiori.filedrivemanage",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.34.0",
+      "toolsId": "6ff6532f-74a0-4136-a09a-0d61c43be865"
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "dependencies": {
+      "minUI5Version": "1.153.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "com.saperp.fiori.filedrivemanage.i18n.i18n"
+        }
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "transition": "slide",
+        "type": "View",
+        "viewType": "XML",
+        "path": "com.saperp.fiori.filedrivemanage.view",
+        "async": true,
+        "viewPath": "com.saperp.fiori.filedrivemanage.view"
+      },
+      "routes": [
+        {
+          "name": "Routefile_manage",
+          "pattern": ":?query:",
+          "target": [
+            "Targetfile_manage"
+          ]
+        }
+      ],
+      "targets": {
+        "Targetfile_manage": {
+          "id": "file_manage",
+          "name": "file_manage"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "com.saperp.fiori.filedrivemanage.view.App",
+      "type": "XML",
+      "id": "App",
+      "async": true
+    }
+  }
+}

@@ -1,0 +1,80 @@
+/* ========== PLEINE PAGE ========== */
+html, body, #content, #container {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+.fmToolPage { height: 100%; }
+
+/* ========== SIDEBAR ========== */
+.fmSideNav {
+    border-right: 1px solid var(--sapGroup_TitleBorderColor);
+}
+
+/* ========== PAGES ========== */
+.fmPage > section { background: var(--sapBackgroundColor); }
+.fmContent { padding: 1.5rem 2rem; width: 100%; box-sizing: border-box; }
+.fmSectionHead { margin-bottom: 1.25rem; }
+.fmSubText { color: var(--sapContent_LabelColor); font-size: var(--sapFontSmallSize); }
+.fmMono { font-family: monospace; font-size: var(--sapFontSmallSize); }
+
+/* ========== CARTES ========== */
+.fmCard {
+    border: none !important;
+    border-radius: 1rem !important;
+    background: var(--sapTile_Background);
+    box-shadow: var(--sapContent_Shadow1);
+    overflow: hidden;
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+.fmKpiCard:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--sapContent_Shadow2);
+}
+.fmCardBody { padding: 1rem 1.25rem 1.25rem; }
+
+/* ========== KPI ========== */
+.fmKpiGrid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 1rem;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+.fmKpiTotal { border-top: 4px solid var(--sapPositiveElementColor) !important; }
+.fmKpiPdf   { border-top: 4px solid var(--sapNegativeElementColor) !important; }
+.fmKpiImg   { border-top: 4px solid var(--sapInformativeElementColor) !important; }
+.fmKpiOther { border-top: 4px solid var(--sapCriticalElementColor) !important; }
+
+/* ========== DASHBOARD (répartition + derniers fichiers) ========== */
+.fmDashGrid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    gap: 1rem;
+    width: 100%;
+}
+
+/* ========== TABLEAU ========== */
+.fmTableCard { width: 100%; }
+.fmTable .sapMListTblHeaderCell,
+.fmTable th {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: var(--sapFontSmallSize);
+    letter-spacing: .03em;
+}
+.fmTable .sapMListTblRow:hover { background: var(--sapList_Hover_Background); }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+    .fmContent { padding: 1rem; }
+}
+@media (max-width: 600px) {
+    .fmContent { padding: .75rem; }
+    .fmKpiGrid { grid-template-columns: 1fr 1fr; gap: .75rem; }
+    .fmDashGrid { grid-template-columns: 1fr; }
+    .fmSearch { width: 100% !important; }
+}
+@media (max-width: 400px) {
+    .fmKpiGrid { grid-template-columns: 1fr; }
+}

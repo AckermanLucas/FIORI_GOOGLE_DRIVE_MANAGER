@@ -1,0 +1,259 @@
+<mvc:View
+    controllerName="com.saperp.fiori.filedrivemanage.controller.file_manage"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:tnt="sap.tnt"
+    xmlns:f="sap.f"
+    xmlns:card="sap.f.cards"
+    xmlns:u="sap.ui.unified"
+    displayBlock="true"
+    height="100%">
+
+    <tnt:ToolPage id="toolPage" class="fmToolPage">
+
+        <!-- ================= SIDEBAR (pleine hauteur, tout à gauche) ================= -->
+        <tnt:sideContent>
+            <tnt:SideNavigation id="sideNavigation" class="fmSideNav" selectedKey="home" itemSelect=".onNavItemSelect">
+                <tnt:NavigationList>
+                    <tnt:NavigationListItem text="Tableau de bord" icon="sap-icon://home" key="home" />
+                    <tnt:NavigationListItem text="Liste des fichiers" icon="sap-icon://document-text" key="files" />
+                </tnt:NavigationList>
+
+                <!-- Toggle Mode sombre : lune / soleil -->
+                <tnt:fixedItem>
+                    <tnt:NavigationList>
+                        <tnt:NavigationListItem
+                            key="theme"
+                            text="{= ${ui>/dark} ? 'Mode clair' : 'Mode sombre' }"
+                            icon="{= ${ui>/dark} ? 'sap-icon://light-mode' : 'sap-icon://dark-mode' }" />
+                    </tnt:NavigationList>
+                </tnt:fixedItem>
+            </tnt:SideNavigation>
+        </tnt:sideContent>
+
+        <!-- ================= CONTENU PRINCIPAL ================= -->
+        <tnt:mainContents>
+            <NavContainer id="navContainer" initialPage="pageHome" height="100%">
+
+                <!-- ============ PAGE 1 : DASHBOARD ============ -->
+                <Page id="pageHome" class="fmPage" enableScrolling="true">
+                    <customHeader>
+                        <Bar>
+                            <contentLeft>
+                                <Button icon="sap-icon://menu2" type="Transparent" tooltip="Menu" press=".onSideNavButtonPress" />
+                                <Title text="Google Drive Manager" level="H2" />
+                            </contentLeft>
+                            <contentRight>
+                                <Button icon="sap-icon://refresh" type="Transparent" tooltip="Synchroniser" press=".loadDriveFiles" />
+                            </contentRight>
+                        </Bar>
+                    </customHeader>
+                    <content>
+                        <VBox class="fmContent">
+
+                            <!-- Titre de section -->
+                            <VBox class="fmSectionHead">
+                                <Title text="Vue d'ensemble" level="H1" titleStyle="H2" />
+                                <Text text="Dernière synchronisation avec SAP CPI : {ui>/lastSync}" class="fmSubText" />
+                            </VBox>
+
+                            <!-- KPI -->
+                            <FlexBox renderType="Bare" class="fmKpiGrid">
+                                <f:Card class="fmCard fmKpiCard fmKpiTotal">
+                                    <f:header>
+                                        <card:NumericHeader
+                                            title="Total fichiers"
+                                            subtitle="Google Drive"
+                                            number="{stats>/totalCount}"
+                                            unit="fichiers"
+                                            state="Good"
+                                            trend="Up"
+                                            details="Cliquez pour voir la liste"
+                                            press=".navToFiles" />
+                                    </f:header>
+                                </f:Card>
+
+                                <f:Card class="fmCard fmKpiCard fmKpiPdf">
+                                    <f:header>
+                                        <card:NumericHeader
+                                            title="Fichiers PDF"
+                                            subtitle="Documents"
+                                            number="{stats>/pdfCount}"
+                                            unit="PDF"
+                                            state="Error"
+                                            details="{= ${stats>/pdfPercent} + '% du total' }"
+                                            press=".navToFiles" />
+                                    </f:header>
+                                </f:Card>
+
+                                <f:Card class="fmCard fmKpiCard fmKpiImg">
+                                    <f:header>
+                                        <card:NumericHeader
+                                            title="Images"
+                                            subtitle="Photos / Graphiques"
+                                            number="{stats>/imageCount}"
+                                            unit="images"
+                                            state="Neutral"
+                                            details="{= ${stats>/imagePercent} + '% du total' }"
+                                            press=".navToFiles" />
+                                    </f:header>
+                                </f:Card>
+
+                                <f:Card class="fmCard fmKpiCard fmKpiOther">
+                                    <f:header>
+                                        <card:NumericHeader
+                                            title="Autres"
+                                            subtitle="Docs, tableurs, archives..."
+                                            number="{stats>/otherCount}"
+                                            unit="fichiers"
+                                            state="Critical"
+                                            details="{= ${stats>/otherPercent} + '% du total' }"
+                                            press=".navToFiles" />
+                                    </f:header>
+                                </f:Card>
+                            </FlexBox>
+
+                            <!-- Répartition + Derniers fichiers -->
+                            <FlexBox renderType="Bare" class="fmDashGrid">
+
+                                <f:Card class="fmCard" height="auto">
+                                    <f:header>
+                                        <card:Header title="Répartition par type" subtitle="Part de chaque type de fichier" iconSrc="sap-icon://pie-chart" />
+                                    </f:header>
+                                    <f:content>
+                                        <VBox class="fmCardBody">
+                                            <Label text="PDF" />
+                                            <ProgressIndicator percentValue="{stats>/pdfPercent}" displayValue="{stats>/pdfCount}" state="Error" class="sapUiTinyMarginBottom" />
+                                            <Label text="Images" />
+                                            <ProgressIndicator percentValue="{stats>/imagePercent}" displayValue="{stats>/imageCount}" state="Information" class="sapUiTinyMarginBottom" />
+                                            <Label text="Autres" />
+                                            <ProgressIndicator percentValue="{stats>/otherPercent}" displayValue="{stats>/otherCount}" state="Warning" />
+                                        </VBox>
+                                    </f:content>
+                                </f:Card>
+
+                                <f:Card class="fmCard" height="auto">
+                                    <f:header>
+                                        <card:Header title="Derniers fichiers" subtitle="Aperçu rapide" iconSrc="sap-icon://history" />
+                                    </f:header>
+                                    <f:content>
+                                        <List items="{path:'files>/items', length:5}" noDataText="Aucun fichier" showSeparators="Inner">
+                                            <CustomListItem type="Active" press=".navToFiles">
+                                                <HBox alignItems="Center" class="sapUiSmallMargin">
+                                                    <core:Icon
+                                                        src="{path:'files>mimeType', formatter:'.formatMimeIcon'}"
+                                                        color="{path:'files>mimeType', formatter:'.formatMimeColor'}"
+                                                        size="1.5rem" class="sapUiSmallMarginEnd" />
+                                                    <VBox>
+                                                        <Text text="{files>name}" maxLines="1" />
+                                                        <Text text="{path:'files>mimeType', formatter:'.formatMimeLabel'}" class="fmSubText" />
+                                                    </VBox>
+                                                </HBox>
+                                            </CustomListItem>
+                                        </List>
+                                    </f:content>
+                                </f:Card>
+
+                            </FlexBox>
+                        </VBox>
+                    </content>
+                </Page>
+
+                <!-- ============ PAGE 2 : LISTE DES FICHIERS & CRUD ============ -->
+                <Page id="pageFiles" class="fmPage" enableScrolling="true">
+                    <customHeader>
+                        <Bar>
+                            <contentLeft>
+                                <Button icon="sap-icon://menu2" type="Transparent" tooltip="Menu" press=".onSideNavButtonPress" />
+                                <Title text="Gestion des fichiers" level="H2" />
+                            </contentLeft>
+                        </Bar>
+                    </customHeader>
+                    <content>
+                        <VBox class="fmContent">
+                            <VBox class="fmCard fmTableCard">
+                                <Table
+                                    id="filesTable"
+                                    class="fmTable"
+                                    items="{files>/items}"
+                                    mode="SingleSelectMaster"
+                                    selectionChange=".onFileSelect"
+                                    sticky="ColumnHeaders,HeaderToolbar"
+                                    growing="true"
+                                    growingThreshold="20"
+                                    popinLayout="GridSmall"
+                                    backgroundDesign="Transparent"
+                                    noDataText="Aucun fichier trouvé">
+
+                                    <headerToolbar>
+                                        <OverflowToolbar design="Transparent" style="Clear">
+                                            <Title text="Fichiers Drive ({= ${files>/items}.length })" level="H2" />
+                                            <ToolbarSpacer />
+
+                                            <!-- Filtre par type -->
+                                            <SegmentedButton selectedKey="all" selectionChange=".onFilterType">
+                                                <items>
+                                                    <SegmentedButtonItem key="all" text="Tous" />
+                                                    <SegmentedButtonItem key="pdf" text="PDF" />
+                                                    <SegmentedButtonItem key="image" text="Images" />
+                                                    <SegmentedButtonItem key="other" text="Autres" />
+                                                </items>
+                                            </SegmentedButton>
+
+                                            <SearchField class="fmSearch" width="16rem" placeholder="Rechercher un fichier..." search=".onSearchFile" liveChange=".onSearchFile" />
+
+                                            <OverflowToolbarButton icon="sap-icon://sort-ascending" text="Trier par nom" tooltip="Trier par nom" type="Transparent" press=".onSortName" />
+                                            <OverflowToolbarButton icon="sap-icon://refresh" text="Actualiser" tooltip="Actualiser" type="Transparent" press=".loadDriveFiles" />
+
+                                            <ToolbarSeparator />
+
+                                            <OverflowToolbarButton id="btnDownload" icon="sap-icon://download" text="Télécharger" tooltip="Télécharger" type="Transparent" enabled="false" press=".onDownloadFile" />
+                                            <OverflowToolbarButton id="btnCopy" icon="sap-icon://copy" text="Copier l'ID" tooltip="Copier l'ID" type="Transparent" enabled="false" press=".onCopyId" />
+                                            <OverflowToolbarButton id="btnEdit" icon="sap-icon://edit" text="Renommer" tooltip="Renommer" type="Transparent" enabled="false" press=".onOpenEditDialog" />
+                                            <OverflowToolbarButton id="btnDelete" icon="sap-icon://delete" text="Supprimer" tooltip="Supprimer" type="Reject" enabled="false" press=".onDeleteFile" />
+
+                                            <u:FileUploader id="fileUploader" buttonOnly="true" buttonText="Importer" icon="sap-icon://upload" style="Emphasized" change=".onUploadFile">
+                                                <u:layoutData>
+                                                    <OverflowToolbarLayoutData priority="NeverOverflow" />
+                                                </u:layoutData>
+                                            </u:FileUploader>
+                                        </OverflowToolbar>
+                                    </headerToolbar>
+
+                                    <columns>
+                                        <Column width="38%"><Text text="Nom du Fichier" /></Column>
+                                        <Column minScreenWidth="Tablet" demandPopin="true"><Text text="Type" /></Column>
+                                        <Column minScreenWidth="Desktop" demandPopin="true"><Text text="ID Fichier" /></Column>
+                                        <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Type MIME" /></Column>
+                                    </columns>
+
+                                    <items>
+                                        <ColumnListItem vAlign="Middle">
+                                            <cells>
+                                                <HBox alignItems="Center">
+                                                    <core:Icon
+                                                        src="{path:'files>mimeType', formatter:'.formatMimeIcon'}"
+                                                        color="{path:'files>mimeType', formatter:'.formatMimeColor'}"
+                                                        size="1.5rem" class="sapUiSmallMarginEnd" />
+                                                    <ObjectIdentifier title="{files>name}" />
+                                                </HBox>
+                                                <ObjectStatus
+                                                    text="{path:'files>mimeType', formatter:'.formatMimeLabel'}"
+                                                    state="{path:'files>mimeType', formatter:'.formatMimeState'}"
+                                                    inverted="true" />
+                                                <Text text="{files>id}" maxLines="1" class="fmMono" />
+                                                <Text text="{files>mimeType}" class="fmSubText" />
+                                            </cells>
+                                        </ColumnListItem>
+                                    </items>
+                                </Table>
+                            </VBox>
+                        </VBox>
+                    </content>
+                </Page>
+
+            </NavContainer>
+        </tnt:mainContents>
+    </tnt:ToolPage>
+</mvc:View>
