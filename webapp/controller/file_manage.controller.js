@@ -309,8 +309,17 @@ sap.ui.define([
 
             var oContext = oSelectedItem.getBindingContext("files");
             var sFileId = oContext.getProperty("id");
+            var sFileName = oContext.getProperty("name") || "document";
 
-            window.open(this._cpiBaseUrl + "/download?fileId=" + sFileId, "_blank");
+            var sUrl = this._cpiBaseUrl + "/download?fileId=" + sFileId;
+
+            // Création d'un élément <a> invisible pour forcer le téléchargement
+            var oLink = document.createElement("a");
+            oLink.href = sUrl;
+            oLink.setAttribute("download", sFileName);
+            document.body.appendChild(oLink);
+            oLink.click();
+            document.body.removeChild(oLink);
         },
 
         // --- COPIER L'ID ---
@@ -363,7 +372,7 @@ sap.ui.define([
             });
         },
 
-        // --- MODIFICATION NOM FICHIER ---
+        // --- MODIFICATION / REMPLACEMENT FICHIER ---
         onOpenEditDialog() {
             var oTable = this.byId("filesTable");
             var oSelectedItem = oTable.getSelectedItem();
@@ -374,41 +383,95 @@ sap.ui.define([
             var sCurrentName = oContext.getProperty("name");
             var that = this;
 
-            var oSave = new Button({
-                text: "Enregistrer",
-                type: "Emphasized",
-                enabled: false,
-                press: () => {
-                    var sNewName = oInput.getValue().trim();
-                    oDialog.close();
-                    that._updateFileName(sFileId, sNewName);
-                }
-            });
-
-            var oInput = new Input({
-                value: sCurrentName,
-                width: "100%",
-                valueLiveUpdate: true,
-                liveChange: (e) => {
-                    var s = e.getParameter("value").trim();
-                    oSave.setEnabled(!!s && s !== sCurrentName);
-                },
-                submit: () => {
-                    if (oSave.getEnabled()) {
-                        oSave.firePress();
+            // 1. Boutons radio pour les 3 options
+            var oModeGroup = new sap.m.RadioButtonGroup({
+                columns: 1, // Affichage vertical pour plus de lisibilité
+                selectedIndex: 0, // Par défaut : Renommer uniquement
+                select: (e) => {
+                    var iIndex = e.getParameter("selectedIndex");
+                    if (iIndex === 0) {
+                        // Option 1 : Renommer uniquement
+                        oInput.setEnabled(true);
+                        oInput.setValue(sCurrentName);
+                        oFileUploader.setEnabled(false);
+                        oFileUploader.clear();
+                    } else if (iIndex === 1) {
+                        // Option 2 : Remplacer le fichier (garde le nom actuel)
+                        oInput.setEnabled(false);
+                        oInput.setValue(sCurrentName);
+                        oFileUploader.setEnabled(true);
+                    } else {
+                        // Option 3 : Remplacer nom et fichier (nom issu du fichier uploadé)
+                        oInput.setEnabled(true);
+                        oFileUploader.setEnabled(true);
+                        var domRef = oFileUploader.getFocusDomRef();
+                        if (domRef && domRef.files[0]) {
+                            oInput.setValue(domRef.files[0].name);
+                        }
                     }
                 }
             });
 
+            oModeGroup.addButton(new sap.m.RadioButton({ text: "Renommer uniquement" }));
+            oModeGroup.addButton(new sap.m.RadioButton({ text: "Remplacer le fichier (conserver le nom)" }));
+            oModeGroup.addButton(new sap.m.RadioButton({ text: "Remplacer nom et fichier (nom auto)" }));
+
+            // 2. Input pour le nom
+            var oInput = new Input({
+                value: sCurrentName,
+                width: "100%",
+                placeholder: "Nom du fichier"
+            });
+
+            // 3. FileUploader pour le nouveau fichier
+            var oFileUploader = new sap.ui.unified.FileUploader({
+                width: "100%",
+                placeholder: "Choisir un nouveau fichier...",
+                enabled: false, // Grisé par défaut
+                change: (e) => {
+                    var domRef = oFileUploader.getFocusDomRef();
+                    if (domRef && domRef.files[0]) {
+                        var sNewFileName = domRef.files[0].name;
+                        // Si on est sur l'option 3, on met à jour automatiquement le nom
+                        if (oModeGroup.getSelectedIndex() === 2) {
+                            oInput.setValue(sNewFileName);
+                        }
+                    }
+                }
+            });
+
+            // Dans la méthode onOpenEditDialog, au niveau du bouton Enregistrer :
+            var oSave = new Button({
+                text: "Enregistrer",
+                type: "Emphasized",
+                press: () => {
+                    var sNewName = oInput.getValue().trim();
+                    var domRef = oFileUploader.getFocusDomRef();
+                    var iMode = oModeGroup.getSelectedIndex();
+                    var file = (iMode > 0 && domRef) ? domRef.files[0] : null;
+
+                    oDialog.close();
+                    that._updateFile(sFileId, sNewName, file, iMode);
+                }
+            });
+
             var oDialog = new Dialog({
-                title: "Renommer le fichier",
+                title: "Modifier le fichier",
                 icon: "sap-icon://edit",
-                contentWidth: "26rem",
+                contentWidth: "30rem",
                 initialFocus: oInput,
                 content: [
                     new VBox({
-                        items: [new Label({ text: "Nouveau nom", labelFor: oInput.getId() }), oInput]
-                    }).addStyleClass("sapUiSmallMargin")
+                        class: "sapUiSmallMargin",
+                        items: [
+                            new Label({ text: "Sélectionnez le mode de modification :" }),
+                            oModeGroup,
+                            new Label({ text: "Nom du fichier", labelFor: oInput.getId() }).addStyleClass("sapUiSmallMarginTop"),
+                            oInput,
+                            new Label({ text: "Nouveau fichier", labelFor: oFileUploader.getId() }).addStyleClass("sapUiSmallMarginTop"),
+                            oFileUploader
+                        ]
+                    })
                 ],
                 beginButton: oSave,
                 endButton: new Button({
@@ -421,25 +484,52 @@ sap.ui.define([
             oDialog.open();
         },
 
-        _updateFileName(sFileId, sNewName) {
+
+        _updateFile(sFileId, sNewName, file, iMode) {
             this.getView().setBusy(true);
             var that = this;
 
-            $.ajax({
-                url: this._cpiBaseUrl + "/update",
-                method: "PUT",
-                contentType: "application/json",
-                data: JSON.stringify({ fileId: sFileId, newName: sNewName }),
-                success: () => {
-                    that.getView().setBusy(false);
-                    MessageToast.show("Nom mis à jour !");
-                    that.loadDriveFiles();
-                },
-                error: (err) => {
-                    that.getView().setBusy(false);
-                    MessageBox.error("Échec de la mise à jour : " + err.responseText);
-                }
-            });
+            if (iMode === 0) {
+                // Option 1 : Renommer uniquement (Envoi JSON simple)
+                $.ajax({
+                    url: that._cpiBaseUrl + "/update",
+                    method: "PUT",
+                    contentType: "application/json",
+                    data: JSON.stringify({ fileId: sFileId, newName: sNewName }),
+                    success: () => {
+                        that.getView().setBusy(false);
+                        MessageToast.show("Nom mis à jour avec succès !");
+                        that.loadDriveFiles();
+                    },
+                    error: (err) => {
+                        that.getView().setBusy(false);
+                        MessageBox.error("Échec de la mise à jour : " + err.responseText);
+                    }
+                });
+            } else {
+                // Option 2 & 3 : Remplacer le fichier (avec ou sans nouveau nom)
+                var reader = new FileReader();
+                reader.onload = (e) => {
+                    var rawData = e.target.result;
+                    $.ajax({
+                        url: that._cpiBaseUrl + "/update?fileId=" + sFileId + "&fileName=" + encodeURIComponent(sNewName),
+                        method: "PUT",
+                        data: rawData,
+                        processData: false,
+                        contentType: file.type || "application/octet-stream",
+                        success: () => {
+                            that.getView().setBusy(false);
+                            MessageToast.show("Fichier et nom mis à jour avec succès !");
+                            that.loadDriveFiles();
+                        },
+                        error: (err) => {
+                            that.getView().setBusy(false);
+                            MessageBox.error("Échec de la mise à jour : " + err.responseText);
+                        }
+                    });
+                };
+                reader.readAsArrayBuffer(file);
+            }
         }
 
     });

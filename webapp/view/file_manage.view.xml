@@ -12,7 +12,7 @@
 
     <tnt:ToolPage id="toolPage" class="fmToolPage">
 
-        <!-- ================= SIDEBAR (pleine hauteur, tout à gauche) ================= -->
+        <!-- ================= SIDEBAR ================= -->
         <tnt:sideContent>
             <tnt:SideNavigation id="sideNavigation" class="fmSideNav" selectedKey="home" itemSelect=".onNavItemSelect">
                 <tnt:NavigationList>
@@ -20,7 +20,7 @@
                     <tnt:NavigationListItem text="Liste des fichiers" icon="sap-icon://document-text" key="files" />
                 </tnt:NavigationList>
 
-                <!-- Toggle Mode sombre : lune / soleil -->
+                <!-- Toggle Mode sombre -->
                 <tnt:fixedItem>
                     <tnt:NavigationList>
                         <tnt:NavigationListItem
@@ -177,7 +177,7 @@
                                     id="filesTable"
                                     class="fmTable"
                                     items="{files>/items}"
-                                    mode="SingleSelectMaster"
+                                    mode="SingleSelectLeft"
                                     selectionChange=".onFileSelect"
                                     sticky="ColumnHeaders,HeaderToolbar"
                                     growing="true"
@@ -210,7 +210,7 @@
 
                                             <OverflowToolbarButton id="btnDownload" icon="sap-icon://download" text="Télécharger" tooltip="Télécharger" type="Transparent" enabled="false" press=".onDownloadFile" />
                                             <OverflowToolbarButton id="btnCopy" icon="sap-icon://copy" text="Copier l'ID" tooltip="Copier l'ID" type="Transparent" enabled="false" press=".onCopyId" />
-                                            <OverflowToolbarButton id="btnEdit" icon="sap-icon://edit" text="Renommer" tooltip="Renommer" type="Transparent" enabled="false" press=".onOpenEditDialog" />
+                                            <OverflowToolbarButton id="btnEdit" icon="sap-icon://edit" text="Modifier" tooltip="Modifier le fichier" type="Transparent" enabled="false" press=".onOpenEditDialog" />
                                             <OverflowToolbarButton id="btnDelete" icon="sap-icon://delete" text="Supprimer" tooltip="Supprimer" type="Reject" enabled="false" press=".onDeleteFile" />
 
                                             <u:FileUploader id="fileUploader" buttonOnly="true" buttonText="Importer" icon="sap-icon://upload" style="Emphasized" change=".onUploadFile">
