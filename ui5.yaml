@@ -17,7 +17,7 @@ server:
           url: https://ui5.sap.com
         backend:
           - path: /http
-            url: https://792045catrial.it-cpitrial06-rt.cfapps.us10-001.hana.ondemand.com
+            url: https://da528372trial.it-cpitrial05-rt.cfapps.us10-001.hana.ondemand.com
             destination: CPI_DRIVE_FILE
     - name: fiori-tools-appreload
       afterMiddleware: compression
