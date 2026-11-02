@@ -1,0 +1,62 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.f"
+    xmlns:card="sap.f.cards">
+
+    <FlexBox renderType="Bare" class="fmKpiGrid">
+        <f:Card class="fmCard fmKpiCard fmKpiTotal">
+            <f:header>
+                <card:NumericHeader
+                    title="Total fichiers"
+                    subtitle="Google Drive"
+                    number="{stats>/totalCount}"
+                    unit="fichiers"
+                    state="Good"
+                    trend="Up"
+                    details="Cliquez pour voir la liste"
+                    press=".navToFiles" />
+            </f:header>
+        </f:Card>
+
+        <f:Card class="fmCard fmKpiCard fmKpiPdf">
+            <f:header>
+                <card:NumericHeader
+                    title="Fichiers PDF"
+                    subtitle="Documents"
+                    number="{stats>/pdfCount}"
+                    unit="PDF"
+                    state="Error"
+                    details="{= ${stats>/pdfPercent} + '% du total' }"
+                    press=".navToFiles" />
+            </f:header>
+        </f:Card>
+
+        <f:Card class="fmCard fmKpiCard fmKpiImg">
+            <f:header>
+                <card:NumericHeader
+                    title="Images"
+                    subtitle="Photos / Graphiques"
+                    number="{stats>/imageCount}"
+                    unit="images"
+                    state="Neutral"
+                    details="{= ${stats>/imagePercent} + '% du total' }"
+                    press=".navToFiles" />
+            </f:header>
+        </f:Card>
+
+        <f:Card class="fmCard fmKpiCard fmKpiOther">
+            <f:header>
+                <card:NumericHeader
+                    title="Autres"
+                    subtitle="Docs, tableurs, archives..."
+                    number="{stats>/otherCount}"
+                    unit="fichiers"
+                    state="Critical"
+                    details="{= ${stats>/otherPercent} + '% du total' }"
+                    press=".navToFiles" />
+            </f:header>
+        </f:Card>
+    </FlexBox>
+
+</core:FragmentDefinition>

@@ -1,0 +1,47 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:u="sap.ui.unified">
+
+    <Dialog
+        id="editDialog"
+        title="Modifier le fichier"
+        icon="sap-icon://edit"
+        contentWidth="30rem"
+        initialFocus="editNameInput"
+        afterClose=".onEditAfterClose">
+
+        <content>
+            <VBox class="sapUiSmallMargin">
+                <Label text="Sélectionnez le mode de modification :" />
+
+                <RadioButtonGroup id="editModeGroup" columns="1" selectedIndex="0" select=".onEditModeSelect">
+                    <buttons>
+                        <RadioButton text="Renommer uniquement" />
+                        <RadioButton text="Remplacer le fichier (conserver le nom)" />
+                        <RadioButton text="Remplacer nom et fichier (nom auto)" />
+                    </buttons>
+                </RadioButtonGroup>
+
+                <Label text="Nom du fichier" labelFor="editNameInput" class="sapUiSmallMarginTop" />
+                <Input id="editNameInput" width="100%" placeholder="Nom du fichier" />
+
+                <Label text="Nouveau fichier" labelFor="editFileUploader" class="sapUiSmallMarginTop" />
+                <u:FileUploader
+                    id="editFileUploader"
+                    width="100%"
+                    placeholder="Choisir un nouveau fichier..."
+                    enabled="false"
+                    change=".onEditFileChange" />
+            </VBox>
+        </content>
+
+        <beginButton>
+            <Button text="Enregistrer" type="Emphasized" press=".onEditSave" />
+        </beginButton>
+        <endButton>
+            <Button text="Annuler" press=".onEditCancel" />
+        </endButton>
+    </Dialog>
+
+</core:FragmentDefinition>

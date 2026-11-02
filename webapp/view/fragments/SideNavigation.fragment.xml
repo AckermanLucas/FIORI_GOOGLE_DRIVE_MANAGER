@@ -1,0 +1,23 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:tnt="sap.tnt">
+
+    <tnt:SideNavigation id="sideNavigation" class="fmSideNav" selectedKey="home" itemSelect=".onNavItemSelect">
+        <tnt:NavigationList>
+            <tnt:NavigationListItem text="Tableau de bord" icon="sap-icon://home" key="home" />
+            <tnt:NavigationListItem text="Liste des fichiers" icon="sap-icon://document-text" key="files" />
+        </tnt:NavigationList>
+
+        <!-- Toggle Mode sombre -->
+        <tnt:fixedItem>
+            <tnt:NavigationList>
+                <tnt:NavigationListItem
+                    key="theme"
+                    text="{= ${ui>/dark} ? 'Mode clair' : 'Mode sombre' }"
+                    icon="{= ${ui>/dark} ? 'sap-icon://light-mode' : 'sap-icon://dark-mode' }" />
+            </tnt:NavigationList>
+        </tnt:fixedItem>
+    </tnt:SideNavigation>
+
+</core:FragmentDefinition>

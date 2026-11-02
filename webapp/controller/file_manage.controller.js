@@ -1,42 +1,38 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
-    "sap/ui/model/json/JSONModel",
     "sap/m/MessageToast",
     "sap/m/MessageBox",
-    "sap/ui/core/Theming",
+    "sap/ui/core/Fragment",
     "sap/ui/Device",
     "sap/ui/model/Filter",
     "sap/ui/model/FilterOperator",
     "sap/ui/model/Sorter",
-    "sap/m/Dialog",
-    "sap/m/Button",
-    "sap/m/Input",
-    "sap/m/Label",
-    "sap/m/VBox"
-], (Controller, JSONModel, MessageToast, MessageBox, Theming, Device, Filter, FilterOperator, Sorter, Dialog, Button, Input, Label, VBox) => {
+    "com/saperp/fiori/filedrivemanage/model/formatter",
+    "com/saperp/fiori/filedrivemanage/model/models",
+    "com/saperp/fiori/filedrivemanage/util/ThemeManager"
+], (Controller, MessageToast, MessageBox, Fragment, Device, Filter, FilterOperator, Sorter, formatter, models, ThemeManager) => {
     "use strict";
 
-    const THEME_KEY = "fmDriveTheme";
     const RANGESET = Device.media.RANGESETS.SAP_STANDARD_EXTENDED;
 
     return Controller.extend("com.saperp.fiori.filedrivemanage.controller.file_manage", {
+
+        // Formatters exposés à la vue : formatter:'.formatter.xxx'
+        formatter: formatter,
 
         // Base URL définie via le proxy ui5.yaml
         _cpiBaseUrl: "/http/manage/file/gd/v3",
 
         onInit() {
             // Initialisation des modèles locaux
-            this.getView().setModel(new JSONModel({ items: [] }), "files");
-            this.getView().setModel(new JSONModel({
-                totalCount: 0, pdfCount: 0, imageCount: 0, otherCount: 0,
-                pdfPercent: 0, imagePercent: 0, otherPercent: 0
-            }), "stats");
+            this.getView().setModel(models.createFilesModel(), "files");
+            this.getView().setModel(models.createStatsModel(), "stats");
 
             // Modèle UI (thème, dernière synchro)
-            var bDark = this._readTheme();
-            this.getView().setModel(new JSONModel({ dark: bDark, lastSync: "-" }), "ui");
+            var bDark = ThemeManager.isDark();
+            this.getView().setModel(models.createUiModel(bDark), "ui");
             if (bDark) {
-                Theming.setTheme("sap_horizon_dark");
+                ThemeManager.setTheme(true);
             }
 
             this._sQuery = "";
@@ -64,46 +60,6 @@ sap.ui.define([
                 oToolPage.setSideExpanded(bBig);
             }
         },
-
-        // --- FORMATTERS (type de fichier) ---
-        _getInfo(sMime) {
-            var s = (sMime || "").toLowerCase();
-            if (s.includes("pdf")) {
-                return { cat: "pdf", icon: "sap-icon://pdf-attachment", label: "PDF", state: "Error", color: "Negative" };
-            }
-            if (s.includes("image")) {
-                return { cat: "image", icon: "sap-icon://attachment-photo", label: "Image", state: "Information", color: "Neutral" };
-            }
-            if (s.includes("spreadsheet") || s.includes("excel") || s.includes("csv")) {
-                return { cat: "other", icon: "sap-icon://excel-attachment", label: "Tableur", state: "Success", color: "Positive" };
-            }
-            if (s.includes("presentation") || s.includes("powerpoint")) {
-                return { cat: "other", icon: "sap-icon://ppt-attachment", label: "Présentation", state: "Warning", color: "Critical" };
-            }
-            if (s.includes("word") || s.includes("document")) {
-                return { cat: "other", icon: "sap-icon://doc-attachment", label: "Document", state: "Information", color: "Neutral" };
-            }
-            if (s.includes("zip") || s.includes("compressed") || s.includes("rar")) {
-                return { cat: "other", icon: "sap-icon://attachment-zip-file", label: "Archive", state: "None", color: "Default" };
-            }
-            if (s.includes("video")) {
-                return { cat: "other", icon: "sap-icon://attachment-video", label: "Vidéo", state: "None", color: "Default" };
-            }
-            if (s.includes("audio")) {
-                return { cat: "other", icon: "sap-icon://attachment-audio", label: "Audio", state: "None", color: "Default" };
-            }
-            if (s.includes("text") || s.includes("json") || s.includes("xml")) {
-                return { cat: "other", icon: "sap-icon://attachment-text-file", label: "Texte", state: "None", color: "Default" };
-            }
-            if (s.includes("folder")) {
-                return { cat: "other", icon: "sap-icon://folder-blank", label: "Dossier", state: "None", color: "Default" };
-            }
-            return { cat: "other", icon: "sap-icon://document", label: "Fichier", state: "None", color: "Default" };
-        },
-        formatMimeIcon(sMime) { return this._getInfo(sMime).icon; },
-        formatMimeLabel(sMime) { return this._getInfo(sMime).label; },
-        formatMimeState(sMime) { return this._getInfo(sMime).state; },
-        formatMimeColor(sMime) { return this._getInfo(sMime).color; },
 
         // --- NAVIGATION & SIDEBAR ---
         onSideNavButtonPress() {
@@ -142,20 +98,10 @@ sap.ui.define([
         },
 
         // --- MODE SOMBRE (NIGHT MODE) ---
-        _readTheme() {
-            try {
-                return window.localStorage.getItem(THEME_KEY) === "dark";
-            } catch (e) {
-                return false;
-            }
-        },
-
         _applyTheme(bDark) {
-            Theming.setTheme(bDark ? "sap_horizon_dark" : "sap_horizon");
+            ThemeManager.setTheme(bDark);
             this.getView().getModel("ui").setProperty("/dark", bDark);
-            try {
-                window.localStorage.setItem(THEME_KEY, bDark ? "dark" : "light");
-            } catch (e) { /* ignore */ }
+            ThemeManager.persist(bDark);
         },
 
         // --- CHARGEMENT DES FICHIERS (GET /list) ---
@@ -246,7 +192,7 @@ sap.ui.define([
             if (this._sType && this._sType !== "all") {
                 aFilter.push(new Filter({
                     path: "mimeType",
-                    test: (sMime) => this._getInfo(sMime).cat === this._sType
+                    test: (sMime) => formatter.getInfo(sMime).cat === this._sType
                 }));
             }
             var oBinding = this.byId("filesTable").getBinding("items");
@@ -372,7 +318,7 @@ sap.ui.define([
             });
         },
 
-        // --- MODIFICATION / REMPLACEMENT FICHIER ---
+        // --- MODIFICATION / REMPLACEMENT FICHIER (dialogue = fragment) ---
         onOpenEditDialog() {
             var oTable = this.byId("filesTable");
             var oSelectedItem = oTable.getSelectedItem();
@@ -381,109 +327,80 @@ sap.ui.define([
             var oContext = oSelectedItem.getBindingContext("files");
             var sFileId = oContext.getProperty("id");
             var sCurrentName = oContext.getProperty("name");
-            var that = this;
+            var oView = this.getView();
 
-            // 1. Boutons radio pour les 3 options
-            var oModeGroup = new sap.m.RadioButtonGroup({
-                columns: 1, // Affichage vertical pour plus de lisibilité
-                selectedIndex: 0, // Par défaut : Renommer uniquement
-                select: (e) => {
-                    var iIndex = e.getParameter("selectedIndex");
-                    if (iIndex === 0) {
-                        // Option 1 : Renommer uniquement
-                        oInput.setEnabled(true);
-                        oInput.setValue(sCurrentName);
-                        oFileUploader.setEnabled(false);
-                        oFileUploader.clear();
-                    } else if (iIndex === 1) {
-                        // Option 2 : Remplacer le fichier (garde le nom actuel)
-                        oInput.setEnabled(false);
-                        oInput.setValue(sCurrentName);
-                        oFileUploader.setEnabled(true);
-                    } else {
-                        // Option 3 : Remplacer nom et fichier (nom issu du fichier uploadé)
-                        oInput.setEnabled(true);
-                        oFileUploader.setEnabled(true);
-                        var domRef = oFileUploader.getFocusDomRef();
-                        if (domRef && domRef.files[0]) {
-                            oInput.setValue(domRef.files[0].name);
-                        }
-                    }
-                }
+            // Contexte du fichier en cours de modification
+            this._oEditCtx = { fileId: sFileId, currentName: sCurrentName };
+
+            Fragment.load({
+                id: oView.getId(),
+                name: "com.saperp.fiori.filedrivemanage.view.fragments.EditFileDialog",
+                controller: this
+            }).then((oDialog) => {
+                this._oEditDialog = oDialog;
+                oView.addDependent(oDialog);
+                this.byId("editNameInput").setValue(sCurrentName);
+                oDialog.open();
             });
-
-            oModeGroup.addButton(new sap.m.RadioButton({ text: "Renommer uniquement" }));
-            oModeGroup.addButton(new sap.m.RadioButton({ text: "Remplacer le fichier (conserver le nom)" }));
-            oModeGroup.addButton(new sap.m.RadioButton({ text: "Remplacer nom et fichier (nom auto)" }));
-
-            // 2. Input pour le nom
-            var oInput = new Input({
-                value: sCurrentName,
-                width: "100%",
-                placeholder: "Nom du fichier"
-            });
-
-            // 3. FileUploader pour le nouveau fichier
-            var oFileUploader = new sap.ui.unified.FileUploader({
-                width: "100%",
-                placeholder: "Choisir un nouveau fichier...",
-                enabled: false, // Grisé par défaut
-                change: (e) => {
-                    var domRef = oFileUploader.getFocusDomRef();
-                    if (domRef && domRef.files[0]) {
-                        var sNewFileName = domRef.files[0].name;
-                        // Si on est sur l'option 3, on met à jour automatiquement le nom
-                        if (oModeGroup.getSelectedIndex() === 2) {
-                            oInput.setValue(sNewFileName);
-                        }
-                    }
-                }
-            });
-
-            // Dans la méthode onOpenEditDialog, au niveau du bouton Enregistrer :
-            var oSave = new Button({
-                text: "Enregistrer",
-                type: "Emphasized",
-                press: () => {
-                    var sNewName = oInput.getValue().trim();
-                    var domRef = oFileUploader.getFocusDomRef();
-                    var iMode = oModeGroup.getSelectedIndex();
-                    var file = (iMode > 0 && domRef) ? domRef.files[0] : null;
-
-                    oDialog.close();
-                    that._updateFile(sFileId, sNewName, file, iMode);
-                }
-            });
-
-            var oDialog = new Dialog({
-                title: "Modifier le fichier",
-                icon: "sap-icon://edit",
-                contentWidth: "30rem",
-                initialFocus: oInput,
-                content: [
-                    new VBox({
-                        class: "sapUiSmallMargin",
-                        items: [
-                            new Label({ text: "Sélectionnez le mode de modification :" }),
-                            oModeGroup,
-                            new Label({ text: "Nom du fichier", labelFor: oInput.getId() }).addStyleClass("sapUiSmallMarginTop"),
-                            oInput,
-                            new Label({ text: "Nouveau fichier", labelFor: oFileUploader.getId() }).addStyleClass("sapUiSmallMarginTop"),
-                            oFileUploader
-                        ]
-                    })
-                ],
-                beginButton: oSave,
-                endButton: new Button({
-                    text: "Annuler",
-                    press: () => { oDialog.close(); }
-                }),
-                afterClose: () => { oDialog.destroy(); }
-            });
-
-            oDialog.open();
         },
 
+        onEditModeSelect(oEvent) {
+            var iIndex = oEvent.getParameter("selectedIndex");
+            var oInput = this.byId("editNameInput");
+            var oFileUploader = this.byId("editFileUploader");
+
+            if (iIndex === 0) {
+                // Option 1 : Renommer uniquement
+                oInput.setEnabled(true);
+                oInput.setValue(this._oEditCtx.currentName);
+                oFileUploader.setEnabled(false);
+                oFileUploader.clear();
+            } else if (iIndex === 1) {
+                // Option 2 : Remplacer le fichier (garde le nom actuel)
+                oInput.setEnabled(false);
+                oInput.setValue(this._oEditCtx.currentName);
+                oFileUploader.setEnabled(true);
+            } else {
+                // Option 3 : Remplacer nom et fichier (nom issu du fichier uploadé)
+                oInput.setEnabled(true);
+                oFileUploader.setEnabled(true);
+                var domRef = oFileUploader.getFocusDomRef();
+                if (domRef && domRef.files[0]) {
+                    oInput.setValue(domRef.files[0].name);
+                }
+            }
+        },
+
+        onEditFileChange() {
+            var oFileUploader = this.byId("editFileUploader");
+            var domRef = oFileUploader.getFocusDomRef();
+            if (domRef && domRef.files[0]) {
+                var sNewFileName = domRef.files[0].name;
+                // Si on est sur l'option 3, on met à jour automatiquement le nom
+                if (this.byId("editModeGroup").getSelectedIndex() === 2) {
+                    this.byId("editNameInput").setValue(sNewFileName);
+                }
+            }
+        },
+
+        onEditSave() {
+            var sNewName = this.byId("editNameInput").getValue().trim();
+            var domRef = this.byId("editFileUploader").getFocusDomRef();
+            var iMode = this.byId("editModeGroup").getSelectedIndex();
+            var file = (iMode > 0 && domRef) ? domRef.files[0] : null;
+
+            this._oEditDialog.close();
+            this._updateFile(this._oEditCtx.fileId, sNewName, file, iMode);
+        },
+
+        onEditCancel() {
+            this._oEditDialog.close();
+        },
+
+        onEditAfterClose() {
+            this._oEditDialog.destroy();
+            this._oEditDialog = null;
+        },
 
         _updateFile(sFileId, sNewName, file, iMode) {
             this.getView().setBusy(true);

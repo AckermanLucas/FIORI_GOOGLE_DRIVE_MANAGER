@@ -1,0 +1,66 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <Page id="pageFiles" class="fmPage" enableScrolling="true">
+        <customHeader>
+            <Bar>
+                <contentLeft>
+                    <Button icon="sap-icon://menu2" type="Transparent" tooltip="Menu" press=".onSideNavButtonPress" />
+                    <Title text="Gestion des fichiers" level="H2" />
+                </contentLeft>
+            </Bar>
+        </customHeader>
+        <content>
+            <VBox class="fmContent">
+                <VBox class="fmCard fmTableCard">
+                    <Table
+                        id="filesTable"
+                        class="fmTable"
+                        items="{files>/items}"
+                        mode="SingleSelectLeft"
+                        selectionChange=".onFileSelect"
+                        sticky="ColumnHeaders,HeaderToolbar"
+                        growing="true"
+                        growingThreshold="20"
+                        popinLayout="GridSmall"
+                        backgroundDesign="Transparent"
+                        noDataText="Aucun fichier trouvé">
+
+                        <headerToolbar>
+                            <core:Fragment fragmentName="com.saperp.fiori.filedrivemanage.view.fragments.FilesToolbar" type="XML" />
+                        </headerToolbar>
+
+                        <columns>
+                            <Column width="38%"><Text text="Nom du Fichier" /></Column>
+                            <Column minScreenWidth="Tablet" demandPopin="true"><Text text="Type" /></Column>
+                            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="ID Fichier" /></Column>
+                            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Type MIME" /></Column>
+                        </columns>
+
+                        <items>
+                            <ColumnListItem vAlign="Middle">
+                                <cells>
+                                    <HBox alignItems="Center">
+                                        <core:Icon
+                                            src="{path:'files>mimeType', formatter:'.formatter.formatMimeIcon'}"
+                                            color="{path:'files>mimeType', formatter:'.formatter.formatMimeColor'}"
+                                            size="1.5rem" class="sapUiSmallMarginEnd" />
+                                        <ObjectIdentifier title="{files>name}" />
+                                    </HBox>
+                                    <ObjectStatus
+                                        text="{path:'files>mimeType', formatter:'.formatter.formatMimeLabel'}"
+                                        state="{path:'files>mimeType', formatter:'.formatter.formatMimeState'}"
+                                        inverted="true" />
+                                    <Text text="{files>id}" maxLines="1" class="fmMono" />
+                                    <Text text="{files>mimeType}" class="fmSubText" />
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+                </VBox>
+            </VBox>
+        </content>
+    </Page>
+
+</core:FragmentDefinition>

@@ -1,0 +1,39 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:u="sap.ui.unified">
+
+    <OverflowToolbar design="Transparent" style="Clear">
+        <Title text="Fichiers Drive ({= ${files>/items}.length })" level="H2" />
+        <ToolbarSpacer />
+
+        <!-- Filtre par type -->
+        <SegmentedButton selectedKey="all" selectionChange=".onFilterType">
+            <items>
+                <SegmentedButtonItem key="all" text="Tous" />
+                <SegmentedButtonItem key="pdf" text="PDF" />
+                <SegmentedButtonItem key="image" text="Images" />
+                <SegmentedButtonItem key="other" text="Autres" />
+            </items>
+        </SegmentedButton>
+
+        <SearchField class="fmSearch" width="16rem" placeholder="Rechercher un fichier..." search=".onSearchFile" liveChange=".onSearchFile" />
+
+        <OverflowToolbarButton icon="sap-icon://sort-ascending" text="Trier par nom" tooltip="Trier par nom" type="Transparent" press=".onSortName" />
+        <OverflowToolbarButton icon="sap-icon://refresh" text="Actualiser" tooltip="Actualiser" type="Transparent" press=".loadDriveFiles" />
+
+        <ToolbarSeparator />
+
+        <OverflowToolbarButton id="btnDownload" icon="sap-icon://download" text="Télécharger" tooltip="Télécharger" type="Transparent" enabled="false" press=".onDownloadFile" />
+        <OverflowToolbarButton id="btnCopy" icon="sap-icon://copy" text="Copier l'ID" tooltip="Copier l'ID" type="Transparent" enabled="false" press=".onCopyId" />
+        <OverflowToolbarButton id="btnEdit" icon="sap-icon://edit" text="Modifier" tooltip="Modifier le fichier" type="Transparent" enabled="false" press=".onOpenEditDialog" />
+        <OverflowToolbarButton id="btnDelete" icon="sap-icon://delete" text="Supprimer" tooltip="Supprimer" type="Reject" enabled="false" press=".onDeleteFile" />
+
+        <u:FileUploader id="fileUploader" buttonOnly="true" buttonText="Importer" icon="sap-icon://upload" style="Emphasized" change=".onUploadFile">
+            <u:layoutData>
+                <OverflowToolbarLayoutData priority="NeverOverflow" />
+            </u:layoutData>
+        </u:FileUploader>
+    </OverflowToolbar>
+
+</core:FragmentDefinition>

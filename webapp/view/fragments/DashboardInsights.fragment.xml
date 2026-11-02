@@ -1,0 +1,49 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.f"
+    xmlns:card="sap.f.cards">
+
+    <FlexBox renderType="Bare" class="fmDashGrid">
+
+        <f:Card class="fmCard" height="auto">
+            <f:header>
+                <card:Header title="Répartition par type" subtitle="Part de chaque type de fichier" iconSrc="sap-icon://pie-chart" />
+            </f:header>
+            <f:content>
+                <VBox class="fmCardBody">
+                    <Label text="PDF" />
+                    <ProgressIndicator percentValue="{stats>/pdfPercent}" displayValue="{stats>/pdfCount}" state="Error" class="sapUiTinyMarginBottom" />
+                    <Label text="Images" />
+                    <ProgressIndicator percentValue="{stats>/imagePercent}" displayValue="{stats>/imageCount}" state="Information" class="sapUiTinyMarginBottom" />
+                    <Label text="Autres" />
+                    <ProgressIndicator percentValue="{stats>/otherPercent}" displayValue="{stats>/otherCount}" state="Warning" />
+                </VBox>
+            </f:content>
+        </f:Card>
+
+        <f:Card class="fmCard" height="auto">
+            <f:header>
+                <card:Header title="Derniers fichiers" subtitle="Aperçu rapide" iconSrc="sap-icon://history" />
+            </f:header>
+            <f:content>
+                <List items="{path:'files>/items', length:5}" noDataText="Aucun fichier" showSeparators="Inner">
+                    <CustomListItem type="Active" press=".navToFiles">
+                        <HBox alignItems="Center" class="sapUiSmallMargin">
+                            <core:Icon
+                                src="{path:'files>mimeType', formatter:'.formatter.formatMimeIcon'}"
+                                color="{path:'files>mimeType', formatter:'.formatter.formatMimeColor'}"
+                                size="1.5rem" class="sapUiSmallMarginEnd" />
+                            <VBox>
+                                <Text text="{files>name}" maxLines="1" />
+                                <Text text="{path:'files>mimeType', formatter:'.formatter.formatMimeLabel'}" class="fmSubText" />
+                            </VBox>
+                        </HBox>
+                    </CustomListItem>
+                </List>
+            </f:content>
+        </f:Card>
+
+    </FlexBox>
+
+</core:FragmentDefinition>
